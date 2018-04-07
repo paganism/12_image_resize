@@ -9,7 +9,7 @@ def get_image(path_to_image):
     return image
 
 
-def resize_image(image, width, height, scale):
+def get_new_dimensions(image, width, height, scale):
     old_width, old_height = image.size
     ratio = old_width / old_height
     if not height and width:
@@ -21,19 +21,22 @@ def resize_image(image, width, height, scale):
     if height and width:
         new_width = width
         new_height = height
-        if ratio != new_width/new_height:
-            print('Соотношение сторон изменено')
     if scale:
         new_width = int(old_width * scale)
         new_height = int(old_height * scale)
+    new_ratio = new_width / new_height
+    return new_width, new_height, ratio, new_ratio
+
+
+def resize_image(image, new_width, new_height):
     resized_image = image.resize((new_width, new_height), Image.ANTIALIAS)
     return resized_image
 
 
-def save_resized_image(resized_image, source_name, source_format, image_dir):
+def save_resized_image(resized_image, source_path, image_dir):
     width, height = resized_image.size
-    new_image_name = '{}__{}x{}.{}'.format(source_name,
-                                           width, height, source_format)
+    source_name, ext = os.path.splitext(os.path.basename(args.path))
+    new_image_name = '{}__{}x{}{}'.format(source_name, width, height, ext)
     resized_image.save(os.path.join(image_dir, new_image_name))
 
 
@@ -59,11 +62,14 @@ if __name__ == '__main__':
     if not os.path.exists(args.path):
         sys.exit('Файл по указанному пути не существует')
     image = get_image(args.path)
-    source_name, ext = os.path.basename(args.path).split('.')
     if not args.dest:
         image_dir = os.path.dirname(args.path)
     else:
         image_dir = args.dest
-    source_format = image.format.lower()
-    resized_image = resize_image(image, args.width, args.height, args.scale)
-    save_resized_image(resized_image, source_name, ext, image_dir)
+    source_format = image.format
+    new_width, new_height, ratio, new_ratio = get_new_dimensions(
+        image, args.width, args.height, args.scale)
+    if ratio != new_ratio:
+        print('Соотношение сторон изменено')
+    resized_image = resize_image(image, new_width, new_height)
+    save_resized_image(resized_image, args.path, image_dir)
