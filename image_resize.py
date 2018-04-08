@@ -9,8 +9,8 @@ def get_image(path_to_image):
     return image
 
 
-def get_new_dimensions(image, width, height, scale):
-    old_width, old_height = image.size
+def get_new_dimensions(old_dimensions, width, height, scale):
+    old_width, old_height = old_dimensions
     ratio = old_width / old_height
     if not height and width:
         new_height = int(width / ratio)
@@ -42,16 +42,39 @@ def save_resized_image(resized_image, source_path, image_dir):
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', dest='path', required=True,
-                        help='Path to image file')
-    parser.add_argument('--width', dest='width', type=int,
-                        required=False, default=None)
-    parser.add_argument('--height', dest='height', type=int,
-                        required=False, default=None)
-    parser.add_argument('--scale', dest='scale', type=float,
-                        required=False, default=None)
-    parser.add_argument('--dest', dest='dest',
-                        required=False, default=None)
+    parser.add_argument(
+        '--path',
+        dest='path',
+        required=True,
+        help='Path to image file'
+    )
+    parser.add_argument(
+        '--width',
+        dest='width',
+        type=int,
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        '--height',
+        dest='height',
+        type=int,
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        '--scale',
+        dest='scale',
+        type=float,
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        '--dest',
+        dest='dest',
+        required=False,
+        default=None
+    )
     return parser.parse_args()
 
 
@@ -62,13 +85,14 @@ if __name__ == '__main__':
     if not os.path.exists(args.path):
         sys.exit('Файл по указанному пути не существует')
     image = get_image(args.path)
+    old_dimensions = image.size
     if not args.dest:
         image_dir = os.path.dirname(args.path)
     else:
         image_dir = args.dest
     source_format = image.format
     new_width, new_height, ratio, new_ratio = get_new_dimensions(
-        image, args.width, args.height, args.scale)
+        old_dimensions, args.width, args.height, args.scale)
     if ratio != new_ratio:
         print('Соотношение сторон изменено')
     resized_image = resize_image(image, new_width, new_height)
